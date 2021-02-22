@@ -1,9 +1,9 @@
 server {
 	listen 80;
-	server_name site1.ru www.site1.ru;
-	root /var/www/site1;
-	access_log /var/log/nginx/site1_access.log;
-	error_log /var/log/nginx/site1_error.log;
+	server_name film.teleservizi.it srvcms.film.it;
+	root /var/www/www.film.it/film.it/httpdocs;
+	access_log /var/log/nginx/srvcms.film.it_access.log;
+	error_log /var/log/nginx/srvcms.film.it_error.log;
 
 	location / {
 		proxy_set_header X-Real-IP  $remote_addr;

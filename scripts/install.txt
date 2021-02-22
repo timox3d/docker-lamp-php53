@@ -3,7 +3,7 @@ Install docker CE on Ubuntu 14/16
 On clear Ubuntu 14 host under user with sudo permission in the user home directory
 
 sudo su
-echo "America/Los_Angeles" > /etc/timezone
+echo "Europe/Rome" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
 exit
 

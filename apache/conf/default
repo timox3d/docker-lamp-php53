@@ -1,29 +1,272 @@
 <VirtualHost *:80>
-    ServerName site1.ru
-    ServerAlias www.site1.ru
-    ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/site1
-    ErrorLog /var/log/apache2/site1_error.log
-    CustomLog /var/log/apache2/site1_access.log combined
-    LogLevel info
-    php_admin_value open_basedir "/var/www/site1/:."
-    php_admin_value safe_mode "on"
-    php_admin_value upload_tmp_dir "/tmp"
-    php_admin_value session.save_path "/tmp"
-#    ErrorLog /dev/stdout
-#    CustomLog /dev/stdout combined
+    DocumentRoot /var/www/www.film.it/film.it/httpdocs
+    ServerName film.teleservizi.it
+	ServerAlias srvcms.film.it
+
+    ErrorLog /var/log/apache2/srvcms.film.it-error_log
+    CustomLog /var/log/apache2/srvcms.it-access_log common
+	#php_admin_value open_basedir "/var/www/www.film.it/film.it/httpdocs/:."
+    #php_admin_value safe_mode "on"
+    #php_admin_value upload_tmp_dir "/tmp"
+    #php_admin_value session.save_path "/tmp"
+	
+    <DirectoryMatch /var/www/www.film.it/film.it/httpdocs/>
+                #abilitare l'uso dei link simbolici da parte di Apache
+                Options +FollowSymLinks
+                #disabilito gli .htaccess perche rallentano Apache
+                AllowOverride None
+
+                Order allow,deny
+                Allow from all
+
+                AddDefaultCharset UTF-8
+		
+		RewriteEngine On
+
+# per l'attivazione dell'utente
+RewriteEngine on
+RewriteCond %{REQUEST_URI} ^/Signup/Confirmation.*
+RewriteRule (.*) /fileadmin/login/attivazione.php\?%{QUERY_STRING} [R=301,L]
+
+# meglio inserire anche queste:
+RewriteRule ^typo3$ - [L]
+RewriteRule ^typo3/.*$ - [L]
+RewriteRule ^fileadmin$ - [L]
+RewriteRule ^fileadmin/.*$ - [L]
+RewriteRule ^uploads$ - [L]
+RewriteRule ^uploads/.*$ - [L]
+RewriteRule ^t3lib$ - [L]
+RewriteRule ^t3lib/.*$ - [L]
+RewriteRule ^typo3conf$ - [L]
+RewriteRule ^typo3conf/.*$ - [L]
+RewriteRule ^typo3temp$ - [L]
+RewriteRule ^typo3temp/.*$ - [L]
+
+
+# Do not rewrite any static resources
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d [OR]
+RewriteCond %{REQUEST_FILENAME} -l
+RewriteRule .* - [L]
+
+#------------------------------------------------------------------------------
+# beginning of static file cache ruleset
+
+# Don't cache HTTPS traffic. You may choose to comment out this
+# option if your site runs fully on https. If your site runs mixed, you will
+# not want https traffic to be cached in the same typo3temp folder where it can
+# be requested over http.
+# Enable this if you use a mixed setup.
+#RewriteCond %{HTTPS} off
+
+# We only redirect URI's without query strings
+RewriteCond %{QUERY_STRING} ^$
+
+# It only makes sense to do the other checks if a static file actually exists.
+RewriteCond %{DOCUMENT_ROOT}/typo3temp/tx_ncstaticfilecache/%{HTTP_HOST}/%{REQUEST_URI}index.html -f
+
+# NO frontend user is logged in. Logged in frontend users may see different
+# information than anonymous users. But the anonymous version is cached. So
+# don't show the anonymous version to logged in frontend users.
+#RewriteCond %{HTTP_COOKIE} !nc_staticfilecache [NC]
+
+# Uncomment the following line if you use MnoGoSearch
+#RewriteCond %{HTTP:X-TYPO3-mnogosearch} ^$
+
+# We only redirect GET requests
+RewriteCond %{REQUEST_METHOD} GET
+
+# NO backend user is logged in. Please note that the be_typo_user cookie expires at the
+# end of the browser session. If you have logged out of the TYPO3 backend and are expecting to see cached pages but don't. Please close this browser settion first or remove the cookie manually or use another browser to hit your frontend.
+RewriteCond %{HTTP_COOKIE} !be_typo_user [NC]
+
+# Check for Ctrl Shift reload
+RewriteCond %{HTTP:Pragma} !no-cache
+RewriteCond %{HTTP:Cache-Control} !no-cache
+
+# Rewrite the request to the static file.
+RewriteRule .* typo3temp/tx_ncstaticfilecache/%{HTTP_HOST}/%{REQUEST_URI}/index\.html [L]
+
+# end of static file cache ruleset
+#------------------------------------------------------------------------------
+
+RewriteRule .* index.php [L]
+
+
+        </DirectoryMatch>
+
 </VirtualHost>
 
 <VirtualHost *:80>
-    ServerName site2.ru
-    ServerAlias www.site2.ru
-    ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/site2
-    ErrorLog /var/log/apache2/site2_error.log
-    CustomLog /var/log/apache2/site2_access.log combined
-    LogLevel info
-    php_admin_value open_basedir "/var/www/site1/:."
-    php_admin_value safe_mode "on"
-    php_admin_value upload_tmp_dir "/tmp"
-    php_admin_value session.save_path "/tmp"
+    DocumentRoot /var/www/www.film.it/film.it/httpdocs
+    ServerAlias www.film.it
+	ServerAlias film.it
+    # ServerAlias www2.film.it
+
+    ErrorLog /var/log/apache2/film.it-error_log
+    CustomLog /var/log/apache2/film.it-access_log common
+	#php_admin_value open_basedir "/var/www/www.film.it/film.it/httpdocs/:."
+    #php_admin_value safe_mode "on"
+    #php_admin_value upload_tmp_dir "/tmp"
+    #php_admin_value session.save_path "/tmp"
+	
+	#LEGATO A CONFIGURAZIONE DI VARNISH
+	#SetEnvIf X-Forwarded-Proto https HTTPS=on
+
+    <DirectoryMatch /var/www/www.film.it/film.it/httpdocs/>
+                #abilitare l'uso dei link simbolici da parte di Apache
+                Options +FollowSymLinks
+                #disabilito gli .htaccess perche rallentano Apache
+                AllowOverride None
+
+                Order allow,deny
+                Allow from all
+
+                AddDefaultCharset UTF-8
+		
+		<IfModule mod_expires.c>
+		ExpiresActive on
+		ExpiresByType image/gif A2592000
+		ExpiresByType image/jpg A2592000
+		ExpiresByType image/jpeg A2592000
+		ExpiresByType image/png A2592000
+		ExpiresByType text/css A300
+		ExpiresByType text/html A120
+		ExpiresByType application/javascript A300
+		</IfModule>
+		
+		
+		# Enable URL rewriting
+		RewriteEngine On
+		
+		RewriteCond %{HTTP_HOST} ^film.it
+        # RewriteCond %{HTTP_HOST} ^www2.film.it [OR]
+		RewriteRule ^(.*)$ http://www.film.it/$1 [R=permanent,L]
+		
+		
+		# meglio inserire anche queste:
+		RewriteRule ^typo3$ - [L]
+		RewriteRule ^typo3/.*$ - [L]
+		RewriteRule ^fileadmin$ - [L]
+		RewriteRule ^fileadmin/.*$ - [L]
+		RewriteRule ^uploads$ - [L]
+		RewriteRule ^uploads/.*$ - [L]
+		RewriteRule ^t3lib$ - [L]
+		RewriteRule ^t3lib/.*$ - [L]
+		RewriteRule ^typo3conf$ - [L]
+		RewriteRule ^typo3conf/.*$ - [L]
+		RewriteRule ^typo3temp$ - [L]
+		RewriteRule ^typo3temp/.*$ - [L]
+
+
+		# Do not rewrite any static resources
+		RewriteCond %{REQUEST_FILENAME} -f [OR]
+		RewriteCond %{REQUEST_FILENAME} -d [OR]
+		RewriteCond %{REQUEST_FILENAME} -l
+		RewriteRule .* - [L]
+		
+		
+		
+		## se la url ha uno di questi nomi non deve fare la redirezione in https
+		# RewriteCond %{REQUEST_URI} !fileadmin.*
+		# RewriteCond %{REQUEST_URI} !typo3.*
+		# RewriteCond %{REQUEST_URI} !t3lib.*
+		# RewriteCond %{REQUEST_URI} !typo3temp.*
+		# RewriteCond %{REQUEST_URI} !typo3conf.*
+		# RewriteCond %{REQUEST_URI} !srv\-filmit\-geo.* 
+		# RewriteCond %{REQUEST_URI} !cinema\-vicino.*
+		# RewriteCond %{REQUEST_URI} !ajaxcinema.*
+		# RewriteCond %{REQUEST_URI} !serviceCopyright.*
+		# RewriteCond %{REQUEST_URI} !film\-a\-z.*
+		# RewriteCond %{REQUEST_URI} !preview_client.*
+		# RewriteCond %{REQUEST_URI} !printUrl_client.*
+		# RewriteCond %{REQUEST_URI} !rssfeed.*
+		# RewriteCond %{REQUEST_URI} !flussi.*
+		# RewriteCond %{REQUEST_URI} !widget.*
+		# RewriteCond %{REQUEST_URI} !widjet.*
+		# RewriteCond %{REQUEST_URI} !srv\-filmit\-geo.*
+		# RewriteCond %{REQUEST_URI} !static_rss.*
+		# RewriteCond %{REQUEST_URI} !news_dinamico.*
+		# RewriteCond %{REQUEST_URI} !sitemap.*
+		# RewriteCond %{REQUEST_URI} !export.*
+		# RewriteCond %{HTTP_HOST} www.film.it
+		# RewriteRule ^(.*)$ https://www.film.it/$1 [R=permanent,L]
+
+	#	RewriteCond %{HTTP_HOST} ^film.teleservizi.it
+	#   RewriteRule ^(.*)$ http://www.film.it/$1 [R=permanent,L]
+
+		RewriteCond %{QUERY_STRING} ^id=([0-9]*)$
+		RewriteRule ^cinema/schedapersonaggio\.php$ https://www.film.it/cinema/schedapersonaggio.php\?idtmp=%1 [R=301,L]
+		RewriteCond %{QUERY_STRING} ^id=([0-9]*)$
+		RewriteRule ^cinema/schedafilm\.php$ https://www.film.it/cinema/schedafilm.php\?idtmp=%1 [R=301,L]
+
+
+		RewriteCond %{REQUEST_URI} ^/Signup/Confirmation.*
+		RewriteRule (.*) /fileadmin/login/attivazione.php\?%{QUERY_STRING} [R=301,L]
+
+	
+
+
+
+		
+
+		#------------------------------------------------------------------------------
+		# beginning of static file cache ruleset
+
+		# Don't cache HTTPS traffic. You may choose to comment out this
+		# option if your site runs fully on https. If your site runs mixed, you will
+		# not want https traffic to be cached in the same typo3temp folder where it can
+		# be requested over http.
+		# Enable this if you use a mixed setup.
+		# RewriteCond %{HTTPS} on
+
+		# We only redirect URI's without query strings
+		RewriteCond %{QUERY_STRING} ^$
+
+		# It only makes sense to do the other checks if a static file actually exists.
+		RewriteCond %{DOCUMENT_ROOT}/typo3temp/tx_ncstaticfilecache/%{HTTP_HOST}/%{REQUEST_URI}index.html -f
+		# NO frontend user is logged in. Logged in frontend users may see different
+		# information than anonymous users. But the anonymous version is cached. So
+		# don't show the anonymous version to logged in frontend users.
+		#RewriteCond %{HTTP_COOKIE} !nc_staticfilecache [NC]
+
+		# Uncomment the following line if you use MnoGoSearch
+		#RewriteCond %{HTTP:X-TYPO3-mnogosearch} ^$
+
+		# We only redirect GET requests
+		#RewriteCond %{REQUEST_METHOD} GET
+
+		# NO backend user is logged in. Please note that the be_typo_user cookie expires at the
+		# end of the browser session. If you have logged out of the TYPO3 backend and are expecting to see cached pages but don't. Please close this browser settion first or remove the cookie manually or use another browser to hit your frontend.
+		RewriteCond %{HTTP_COOKIE} !be_typo_user [NC]
+
+		# Check for Ctrl Shift reload
+		RewriteCond %{HTTP:Pragma} !no-cache
+		RewriteCond %{HTTP:Cache-Control} !no-cache
+
+		# Rewrite the request to the static file.
+		RewriteRule .* typo3temp/tx_ncstaticfilecache/%{HTTP_HOST}/%{REQUEST_URI}/index\.html [L]
+
+		# end of static file cache ruleset
+		#------------------------------------------------------------------------------
+
+		RewriteRule .* index.php [L]
+
+
+		#Codice per abilitare la compressione
+		<IfModule mod_deflate.c>
+			<IfModule mod_headers.c>
+				Header append Vary User-Agent env=!dont-vary
+			</IfModule>
+			AddOutputFilterByType DEFLATE text/css text/x-component application/x-javascript application/javascript text/javascript text/x-js text/html text/richtext image/svg+xml text/plain text/xsd text/xsl text/xml image/x-icon application/json
+			<IfModule mod_mime.c>
+				# DEFLATE by extension
+				AddOutputFilter DEFLATE js css htm html xml
+			</IfModule>
+		</IfModule>
+		#Fine codice per abilitare la compressione
+
+	</DirectoryMatch>
+
 </VirtualHost>
+

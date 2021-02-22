@@ -3,7 +3,7 @@ MAINTAINER korvinca@gmail.com
 
 VOLUME ["/var/www"]
 
-RUN echo "America/Los_Angeles" > /etc/timezone && \
+RUN echo "Europe/Rome" > /etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -33,6 +33,11 @@ RUN apt-get install -y php5 \
     php5-gd && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+	apt-get install -y imagemagick \
+	apt-get install -y php-soap \
+	apt-get install -y php-apc
 
 EXPOSE 80
 

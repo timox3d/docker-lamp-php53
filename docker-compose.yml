@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  mysql:
+  fmysql:
     image: mysql
     volumes:
       - db_data:/var/lib/mysql
@@ -15,42 +15,42 @@ services:
 #    ports:
 #      - "3306:3306"
 
-  phpmyadmin:
+  fphpmyadmin:
     depends_on:
-      - mysql
+      - fmysql
     image: phpmyadmin/phpmyadmin
     links:
-      - mysql
+      - fmysql
     restart: always
     environment:
-      PMA_HOST: mysql
+      PMA_HOST: fmysql
       PMA_PORT: 3306
     ports:
       - "89:80"
 
-  apache2:
+  fapache2:
     depends_on:
-      - mysql
+      - fmysql
     build: ./apache/
     links:
-      - mysql
+      - fmysql
     restart: always
     ports:
       - "88:80"
     volumes:
       - ./apache/conf:/etc/apache2/sites-available/
-      - /var/www:/var/www
+      - ../www:/var/www
       - ../log/apache2:/var/log/apache2
       - ../tmp:/tmp
 
-  nginx:
+  fnginx:
     build: ./nginx/
     ports:
-        - "80:80"
+        - "87:80"
     links:
-      - apache2
-      - mysql
-      - phpmyadmin
+      - fapache2
+      - fmysql
+      - fphpmyadmin
     restart: always
     volumes:
       - ./nginx/config:/etc/nginx/sites-enabled/
